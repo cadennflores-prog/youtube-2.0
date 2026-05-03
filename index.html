@@ -1,74 +1,79 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Acoustic Data Processor</title> <style>
-        body { background: #121212; color: #666; font-family: sans-serif; text-align: center; padding-top: 50px; }
-        .hub { background: #1a1a1a; padding: 20px; border-radius: 10px; width: 400px; margin: auto; border: 1px solid #333; }
-        input { width: 70%; padding: 10px; border-radius: 5px; border: none; background: #222; color: white; }
-        button { padding: 10px; border-radius: 5px; border: none; cursor: pointer; background: #444; color: white; }
+    <title>Acoustic Research Portal</title> <style>
+        body { background: #121212; color: #555; font-family: sans-serif; text-align: center; padding-top: 50px; }
+        .hub { background: #1a1a1a; padding: 20px; border-radius: 12px; width: 350px; margin: auto; border: 1px solid #333; }
+        input { width: 85%; padding: 10px; border-radius: 5px; border: none; background: #222; color: white; margin-top: 10px; }
+        button { width: 90%; padding: 10px; margin-top: 10px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; }
+        .search-btn { background: #444; color: white; }
+        .load-btn { background: #007bff; color: white; }
 
-        /* The Search Results Overlay */
-        #searchOverlay {
+        /* THE OVERLAY (This won't be blocked) */
+        #musicOverlay {
             display: none;
             position: fixed;
-            top: 10%; left: 10%; width: 80%; height: 60%;
-            background: #000; border: 2px solid #444; z-index: 999;
+            bottom: 20px; right: 20px; width: 320px;
+            background: #000; padding: 10px; border-radius: 12px; border: 1px solid #444; z-index: 10000;
         }
-
-        /* The Mini-Player Overlay */
-        #playerOverlay {
-            display: none;
-            position: fixed;
-            bottom: 10px; right: 10px; width: 300px; height: 120px;
-            background: #000; border: 1px solid #ff0000; z-index: 1000;
-        }
-
-        iframe { width: 100%; height: 100%; border: none; }
-        .close-btn { background: red; color: white; width: 100%; cursor: pointer; }
+        #musicFrame { width: 100%; height: 80px; border: none; border-radius: 8px; }
+        .kill-btn { background: #d9534f; color: white; margin-top: 5px; font-size: 11px; }
     </style>
 </head>
 <body>
 
     <div class="hub">
-        <h3>Frequency Search Node</h3>
-        <input type="text" id="searchInput" placeholder="Search Music Only...">
-        <button onclick="openSearch()">Search</button>
+        <h3>Audio Data Input</h3>
+        
+        <input type="text" id="searchQuery" placeholder="1. Search for a song...">
+        <button class="search-btn" onclick="openSidecarSearch()">Open Music Search</button>
+
+        <hr style="border: 0.5px solid #333; margin: 20px 0;">
+
+        <input type="text" id="linkInput" placeholder="2. Paste link here...">
+        <button class="load-btn" onclick="activateOverlay()">Play in Overlay</button>
     </div>
 
-    <div id="searchOverlay">
-        <button class="close-btn" onclick="closeSearch()">CLOSE RESULTS</button>
-        <iframe id="searchFrame"></iframe>
-    </div>
-
-    <div id="playerOverlay">
-        <iframe id="playerFrame"></iframe>
-        <button class="close-btn" onclick="killMusic()">EMERGENCY MUTE</button>
+    <div id="musicOverlay">
+        <iframe id="musicFrame" src="" allow="autoplay"></iframe>
+        <button class="kill-btn" onclick="stopMusic()">EMERGENCY SHUTDOWN</button>
     </div>
 
     <script>
-        function openSearch() {
-            let query = document.getElementById('searchInput').value;
+        // This opens a tiny 'Sidecar' window that YouTube won't block
+        function openSidecarSearch() {
+            let query = document.getElementById('searchQuery').value;
             if (!query) return;
-
-            // The 'sp' parameter forces YouTube into 'Music' mode
-            let musicOnlyUrl = "https://www.youtube.com/results?search_query=" + encodeURIComponent(query) + "&sp=EgIQAQ%3D%3D";
             
-            document.getElementById('searchFrame').src = musicOnlyUrl;
-            document.getElementById('searchOverlay').style.display = "block";
+            // Filters for ONLY music/songs
+            let musicSearchUrl = "https://www.youtube.com/results?search_query=" + encodeURIComponent(query) + "&sp=EgIQAQ%3D%3D";
+            
+            // Opens a small window in the corner of your screen
+            window.open(musicSearchUrl, 'MusicSearch', 'width=400,height=600,top=100,left=100');
         }
 
-        function closeSearch() {
-            document.getElementById('searchOverlay').style.display = "none";
-            document.getElementById('searchFrame').src = "";
+        function activateOverlay() {
+            let url = document.getElementById('linkInput').value;
+            let videoId = "";
+
+            if (url.includes("v=")) {
+                videoId = url.split("v=")[1].split("&")[0];
+            } else if (url.includes("youtu.be/")) {
+                videoId = url.split("youtu.be/")[1].split("?")[0];
+            }
+
+            if (videoId) {
+                // YouTube ALLOWS this because it's an 'Embed' link
+                document.getElementById('musicFrame').src = "https://www.youtube-nocookie.com/embed/" + videoId + "?autoplay=1";
+                document.getElementById('musicOverlay').style.display = "block";
+                document.getElementById('linkInput').value = ""; 
+            }
         }
 
-        function killMusic() {
-            document.getElementById('playerOverlay').style.display = "none";
-            document.getElementById('playerFrame').src = "";
+        function stopMusic() {
+            document.getElementById('musicOverlay').style.display = "none";
+            document.getElementById('musicFrame').src = "";
         }
-
-        // Pro Tip: If you find a song in the search, copy its link 
-        // and paste it here to play in the mini-player.
     </script>
 </body>
 </html>
