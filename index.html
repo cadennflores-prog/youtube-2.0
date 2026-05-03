@@ -6,31 +6,19 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔬</text></svg>">
 
     <style>
-        body { background: #f4f7f6; color: #2c3e50; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
-        header { background: #2c3e50; color: #ecf0f1; padding: 15px 30px; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        body { background: #f0f2f5; color: #2c3e50; font-family: 'Segoe UI', sans-serif; margin: 0; text-align: center; }
+        header { background: #2c3e50; color: white; padding: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
         
-        .main-hub { max-width: 550px; margin: 80px auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #dcdde1; text-align: center; }
-        h2 { margin-top: 0; color: #2980b9; font-size: 22px; }
-        p { font-size: 14px; color: #7f8c8d; margin-bottom: 30px; }
-
-        .search-area { display: flex; flex-direction: column; gap: 10px; }
-        select, input { padding: 12px; border: 1px solid #bdc3c7; border-radius: 6px; font-size: 15px; outline: none; }
-        input:focus { border-color: #3498db; }
+        .main-hub { max-width: 500px; margin: 100px auto; background: white; padding: 40px; border-radius: 12px; border: 1px solid #dcdde1; }
+        h2 { color: #2980b9; margin-top: 0; }
         
-        .execute-btn { background: #3498db; color: white; border: none; padding: 14px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .search-container { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+        select, input, button { padding: 12px; border-radius: 6px; border: 1px solid #bdc3c7; font-size: 15px; }
+        
+        .execute-btn { background: #3498db; color: white; font-weight: bold; cursor: pointer; border: none; }
         .execute-btn:hover { background: #2980b9; }
 
-        /* THE INTEGRATED SEARCH OVERLAY */
-        #researchOverlay {
-            display: none;
-            position: fixed;
-            bottom: 20px; right: 20px;
-            width: 350px; height: 450px; /* Taller to fit search results */
-            background: #fff; border-radius: 10px; border: 2px solid #2c3e50;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.3); z-index: 10000; overflow: hidden;
-        }
-        iframe { width: 100%; height: calc(100% - 35px); border: none; }
-        .close-bar { background: #c0392b; color: white; padding: 8px; font-size: 10px; text-align: center; cursor: pointer; font-weight: bold; }
+        .status { margin-top: 30px; font-size: 11px; color: #95a5a6; }
     </style>
 </head>
 <body>
@@ -39,60 +27,47 @@
 
 <div class="main-hub">
     <h2>Secure Search Terminal</h2>
-    <p>Input query parameters to retrieve academic audio/visual archives from filtered repositories.</p>
+    <p style="font-size: 13px; color: #7f8c8d;">Syncing encrypted audio archives from Repository A & B.</p>
     
-    <div class="search-area">
+    <div class="search-container">
         <select id="platform">
-            <option value="yt">Repository A (YouTube - Music Filtered)</option>
+            <option value="yt">Repository A (YouTube Music)</option>
             <option value="sp">Repository B (Spotify Catalog)</option>
         </select>
         
-        <input type="text" id="queryInput" placeholder="Enter song or artist name..." onkeydown="if(event.key==='Enter') executeSearch()">
-        <button class="execute-btn" onclick="executeSearch()">SEARCH ARCHIVE</button>
+        <input type="text" id="queryInput" placeholder="Enter song name..." onkeydown="if(event.key==='Enter') startResearch()">
+        <button class="execute-btn" onclick="startResearch()">INITIATE SEARCH</button>
     </div>
 
-    <div style="margin-top: 40px; font-size: 11px; color: #bdc3c7;">
-        Status: <span style="color: #27ae60;">Connection Secure (AES-256)</span>
+    <div class="status">
+        SYSTEM STATUS: <span style="color: #27ae60;">ONLINE</span> | ENCRYPTION: <span style="color: #27ae60;">ACTIVE</span>
     </div>
-</div>
-
-<div id="researchOverlay">
-    <div class="close-bar" onclick="closeOverlay()">TERMINATE CONNECTION</div>
-    <iframe id="displayFrame"></iframe>
 </div>
 
 <script>
-function executeSearch() {
+function startResearch() {
     const platform = document.getElementById('platform').value;
     const query = document.getElementById('queryInput').value;
-    const frame = document.getElementById('displayFrame');
-    const overlay = document.getElementById('researchOverlay');
 
     if (!query) return;
 
-    let searchUrl = "";
+    let url = "";
 
     if (platform === "yt") {
-        // This searches YouTube but hides regular videos, focusing on music
-        searchUrl = "https://www.youtube.com/results?search_query=" + encodeURIComponent(query) + "&sp=EgIQAQ%253D%253D";
+        // YouTube Search with Music Filter
+        url = "https://www.youtube.com/results?search_query=" + encodeURIComponent(query) + "&sp=EgIQAQ%253D%253D";
     } else {
-        // This searches the Spotify web player catalog
-        searchUrl = "https://open.spotify.com/search/" + encodeURIComponent(query);
+        // Spotify Search
+        url = "https://open.spotify.com/search/" + encodeURIComponent(query);
     }
 
-    // Load the results in the window and show it
-    frame.src = searchUrl;
-    overlay.style.display = "block";
-    
+    // THE FIX: We open a 'Sidecar' window. 
+    // This bypasses the 'Refused to Connect' error because it's not in an iframe.
+    // It's a tiny window you can hide or move to the corner.
+    window.open(url, 'ResearchWindow', 'width=500,height=700,top=100,left=100');
+
     // Clear input for stealth
     document.getElementById('queryInput').value = "";
-}
-
-function closeOverlay() {
-    const frame = document.getElementById('displayFrame');
-    const overlay = document.getElementById('researchOverlay');
-    frame.src = "";
-    overlay.style.display = "none";
 }
 </script>
 
