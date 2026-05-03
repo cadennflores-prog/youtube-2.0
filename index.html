@@ -1,82 +1,110 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <title>Bio-Tech Research Lab | Data Feed</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔬</text></svg>">
-</head>
-    <title>Acoustic Research Portal</title> <style>
-        body { background: #121212; color: #555; font-family: sans-serif; text-align: center; padding-top: 50px; }
-        .hub { background: #1a1a1a; padding: 20px; border-radius: 12px; width: 350px; margin: auto; border: 1px solid #333; }
-        input { width: 85%; padding: 10px; border-radius: 5px; border: none; background: #222; color: white; margin-top: 10px; }
-        button { width: 90%; padding: 10px; margin-top: 10px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; }
-        .search-btn { background: #444; color: white; }
-        .load-btn { background: #007bff; color: white; }
 
-        /* THE OVERLAY (This won't be blocked) */
-        #musicOverlay {
+    <style>
+        body { background: #f0f2f5; color: #333; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
+        header { background: #003366; color: white; padding: 15px 25px; font-size: 14px; font-weight: bold; letter-spacing: 1px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .main-content { max-width: 600px; margin: 60px auto; padding: 30px; background: white; border-radius: 8px; border: 1px solid #ddd; }
+        
+        h2 { color: #003366; font-size: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        p { font-size: 13px; color: #666; line-height: 1.6; }
+
+        .input-group { margin-top: 25px; text-align: left; }
+        select, input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        
+        .sync-btn { background: #003366; color: white; border: none; width: 100%; padding: 12px; font-weight: bold; cursor: pointer; border-radius: 4px; transition: 0.3s; }
+        .sync-btn:hover { background: #0055aa; }
+
+        /* THE FLOATING PLAYER OVERLAY */
+        #mediaOverlay {
             display: none;
             position: fixed;
-            bottom: 20px; right: 20px; width: 320px;
-            background: #000; padding: 10px; border-radius: 12px; border: 1px solid #444; z-index: 10000;
+            bottom: 20px; right: 20px;
+            width: 320px; background: #fff;
+            border-radius: 12px; border: 1px solid #003366;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 1000; overflow: hidden;
         }
-        #musicFrame { width: 100%; height: 80px; border: none; border-radius: 8px; }
-        .kill-btn { background: #d9534f; color: white; margin-top: 5px; font-size: 11px; }
+        #mediaFrame { width: 100%; height: 80px; border: none; display: block; }
+        .panic-btn { background: #cc0000; color: white; border: none; width: 100%; padding: 8px; font-size: 10px; cursor: pointer; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
-    <div class="hub">
-        <h3>Audio Data Input</h3>
-        
-        <input type="text" id="searchQuery" placeholder="1. Search for a song...">
-        <button class="search-btn" onclick="openSidecarSearch()">Open Music Search</button>
+<header>NATIONAL ACADEMIC ARCHIVE: NODE 047</header>
 
-        <hr style="border: 0.5px solid #333; margin: 20px 0;">
+<div class="main-content">
+    <h2>Secure Resource Extraction</h2>
+    <p>Use this terminal to sync external audio frequencies for laboratory analysis. Unauthorized access to non-academic nodes is strictly prohibited.</p>
+    
+    <div class="input-group">
+        <label style="font-size: 11px; font-weight: bold;">SELECT SOURCE:</label>
+        <select id="mediaType">
+            <option value="yt">Visual/Audio Archive (YouTube)</option>
+            <option value="sp">Audio-Only Stream (Spotify)</option>
+        </select>
 
-        <input type="text" id="linkInput" placeholder="2. Paste link here...">
-        <button class="load-btn" onclick="activateOverlay()">Play in Overlay</button>
+        <input type="text" id="targetLink" placeholder="Paste Resource URL here...">
+        <button class="sync-btn" onclick="runSync()">START SYNC</button>
     </div>
 
-    <div id="musicOverlay">
-        <iframe id="musicFrame" src="" allow="autoplay"></iframe>
-        <button class="kill-btn" onclick="stopMusic()">EMERGENCY SHUTDOWN</button>
-    </div>
+    <p style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 10px; font-style: italic;">
+        Status: <span style="color: green;">System Operational</span>
+    </p>
+</div>
 
-    <script>
-        // This opens a tiny 'Sidecar' window that YouTube won't block
-        function openSidecarSearch() {
-            let query = document.getElementById('searchQuery').value;
-            if (!query) return;
-            
-            // Filters for ONLY music/songs
-            let musicSearchUrl = "https://www.youtube.com/results?search_query=" + encodeURIComponent(query) + "&sp=EgIQAQ%3D%3D";
-            
-            // Opens a small window in the corner of your screen
-            window.open(musicSearchUrl, 'MusicSearch', 'width=400,height=600,top=100,left=100');
+<div id="mediaOverlay">
+    <iframe id="mediaFrame" src="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+    <button class="panic-btn" onclick="panicStop()">Emergency Disconnect</button>
+</div>
+
+<script>
+function runSync() {
+    const type = document.getElementById('mediaType').value;
+    const input = document.getElementById('targetLink').value;
+    const frame = document.getElementById('mediaFrame');
+    const overlay = document.getElementById('mediaOverlay');
+
+    if (!input) return;
+
+    if (type === "yt") {
+        // YouTube Extraction
+        let vid = "";
+        if (input.includes("v=")) vid = input.split("v=")[1].split("&")[0];
+        else if (input.includes("youtu.be/")) vid = input.split("youtu.be/")[1];
+
+        if (vid) {
+            frame.src = "https://www.youtube-nocookie.com/embed/" + vid + "?autoplay=1";
+            overlay.style.display = "block";
         }
+    } else {
+        // Spotify Extraction
+        let sid = "";
+        if (input.includes("track/")) sid = input.split("track/")[1].split("?")[0];
+        else if (input.includes("playlist/")) sid = input.split("playlist/")[1].split("?")[0];
 
-        function activateOverlay() {
-            let url = document.getElementById('linkInput').value;
-            let videoId = "";
-
-            if (url.includes("v=")) {
-                videoId = url.split("v=")[1].split("&")[0];
-            } else if (url.includes("youtu.be/")) {
-                videoId = url.split("youtu.be/")[1].split("?")[0];
-            }
-
-            if (videoId) {
-                // YouTube ALLOWS this because it's an 'Embed' link
-                document.getElementById('musicFrame').src = "https://www.youtube-nocookie.com/embed/" + videoId + "?autoplay=1";
-                document.getElementById('musicOverlay').style.display = "block";
-                document.getElementById('linkInput').value = ""; 
-            }
+        if (sid) {
+            let path = input.includes("track") ? "track" : "playlist";
+            frame.src = `https://open.spotify.com/embed/${path}/${sid}?utm_source=generator`;
+            overlay.style.display = "block";
         }
+    }
+    document.getElementById('targetLink').value = ""; // Clears the box for stealth
+}
 
-        function stopMusic() {
-            document.getElementById('musicOverlay').style.display = "none";
-            document.getElementById('musicFrame').src = "";
-        }
-    </script>
+function panicStop() {
+    const frame = document.getElementById('mediaFrame');
+    const overlay = document.getElementById('mediaOverlay');
+    frame.src = "";
+    overlay.style.display = "none";
+}
+</script>
+
 </body>
 </html>
